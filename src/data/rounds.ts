@@ -1,0 +1,96 @@
+import type { Round } from "../types";
+
+export const ROUNDS: Round[] = [
+  {
+    roundNumber: 1,
+    isFinal: false,
+    question: "Що людина найчастіше робить одразу після пробудження?",
+    answers: [
+      { text: "Перевіряє телефон", points: 19 },
+      { text: "Іде в туалет", points: 14 },
+      { text: "Вимикає будильник і спить ще 5 хвилин", points: 12 },
+      { text: "Йде варити каву чи чай", points: 10 },
+      { text: "Потягується", points: 8 },
+      { text: "Дивиться на годинник", points: 6 },
+      { text: "Чистить зуби", points: 5 },
+      { text: "Заправляє ліжко", points: 3 },
+    ],
+  },
+  {
+    roundNumber: 2,
+    isFinal: false,
+    question: "Що українці найчастіше беруть із собою на пляж?",
+    answers: [
+      { text: "Рушник", points: 22 },
+      { text: "Воду", points: 17 },
+      { text: "Сонцезахисний крем", points: 14 },
+      { text: "Телефон", points: 11 },
+      { text: "Парасольку від сонця", points: 9 },
+      { text: "Книжку", points: 7 },
+      { text: "Перекус", points: 5 },
+      { text: "Навушники", points: 4 },
+    ],
+  },
+  {
+    roundNumber: 3,
+    isFinal: false,
+    question: "Чим найчастіше виправдовуються, коли запізнюються на роботу?",
+    answers: [
+      { text: "Пробки на дорозі", points: 25 },
+      { text: "Проспав/проспала", points: 19 },
+      { text: "Громадський транспорт запізнився", points: 15 },
+      { text: "Довго шукав/шукала ключі", points: 11 },
+      { text: "Дитину треба було відвести", points: 9 },
+      { text: "Не спрацював будильник", points: 7 },
+      { text: "Затримала черга в магазині", points: 5 },
+      { text: "Забув/забула щось і повертався/поверталася", points: 3 },
+    ],
+  },
+  {
+    roundNumber: 4,
+    isFinal: false,
+    question: "Що найчастіше дарують колезі на Новий рік?",
+    answers: [
+      { text: "Цукерки чи шоколад", points: 27 },
+      { text: "Кава або чай", points: 20 },
+      { text: "Листівку", points: 16 },
+      { text: "Сертифікат", points: 12 },
+      { text: "Ялинкову прикрасу", points: 9 },
+      { text: "Шкарпетки", points: 7 },
+      { text: "Свічку", points: 5 },
+      { text: "Алкоголь", points: 4 },
+    ],
+  },
+  {
+    roundNumber: 5,
+    isFinal: false,
+    question: "Що люди найчастіше роблять, коли не можуть заснути?",
+    answers: [
+      { text: "Гортають телефон", points: 29 },
+      { text: "Перевертаються з боку на бік", points: 21 },
+      { text: "Рахують овець чи щось інше", points: 16 },
+      { text: "Встають попити води", points: 12 },
+      { text: "Вмикають серіал чи подкаст", points: 9 },
+      { text: "Думають про завтрашні справи", points: 6 },
+      { text: "Читають книжку", points: 4 },
+      { text: "Йдуть на кухню перекусити", points: 3 },
+    ],
+  },
+  {
+    roundNumber: 6,
+    isFinal: true,
+    question: "Що найчастіше псує настрій зранку?",
+    answers: [
+      { text: "Будильник продзвенів занадто рано", points: 31 },
+      { text: "Пробки дорогою на роботу", points: 24 },
+      { text: "Погана погода за вікном", points: 18 },
+      { text: "Немає гарячої води чи кави", points: 13 },
+      { text: "Новини в стрічці", points: 9 },
+      { text: "Безлад удома", points: 6 },
+      { text: "Сварка з рідними", points: 4 },
+      { text: "Зіпсований одяг чи речі", points: 2 },
+    ],
+  },
+];
+
+export const TOTAL_ROUNDS = ROUNDS.length;

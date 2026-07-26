@@ -1,0 +1,45 @@
+export type GamePhase = "round-start" | "board" | "game-end";
+
+export type Team = "team1" | "team2";
+
+// face-off: both teams' face-off players get one guess each; higher points wins control
+// control: the winning team keeps revealing answers until 2 misses
+// steal: the other team gets one guess at the remaining board
+// resolved: round's points have been awarded, board fully revealed, waiting to advance
+export type BoardStage = "face-off" | "control" | "steal" | "resolved";
+
+export interface BoardAnswer {
+  text: string;
+  points: number;
+}
+
+export interface Round {
+  roundNumber: number;
+  isFinal: boolean;
+  question: string;
+  answers: BoardAnswer[]; // exactly 8, sorted roughly descending by points
+}
+
+export interface FaceOffState {
+  firstTeam: Team | null; // host's pick of who starts; also the tiebreaker if both miss. null until chosen
+  turn: Team | null; // whose guess is next; null before a pick is made, and again once both have gone
+  team1Done: boolean;
+  team2Done: boolean;
+  team1Points: number; // points of the tile team1 revealed, 0 if they missed
+  team2Points: number;
+}
+
+export interface GameState {
+  phase: GamePhase;
+  currentRoundIndex: number;
+  scores: Record<Team, number>; // cumulative game score, shown in side badges
+  boardTotal: number; // pot accumulated this round, shown top-center
+  revealed: boolean[]; // length 8, per-slot reveal flags for the current round
+  boardStage: BoardStage;
+  controllingTeam: Team | null; // set once face-off resolves
+  misses: number; // strikes against the controlling team, 0-2
+  faceOff: FaceOffState;
+  lastWinner: Team | null; // who the pot was awarded to, shown on the resolved banner
+  missFlash: number; // increments on every wrong answer, used to trigger the on-screen cross flash
+  missFlashCount: 1 | 2; // how many crosses that flash should show (2 only on the controlling team's 2nd strike)
+}

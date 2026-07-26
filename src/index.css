@@ -1,0 +1,523 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --green-bg-deep: #041209;
+  --green-bg-mid: #0a2413;
+  --green-panel: #123c1f;
+  --green-panel-dark: #0b2a15;
+  --gold: #d8ae4c;
+  --gold-light: #f6dfa0;
+  --gold-dark: #8a641c;
+  --white: #ffffff;
+  --radius: 18px;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── App shell ─────────────────────────────────────── */
+.app {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, var(--green-bg-mid) 0%, var(--green-bg-deep) 75%);
+}
+
+/* ── Screen wrapper ────────────────────────────────── */
+.screen {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Animated background ───────────────────────────── */
+.animated-bg-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Shared gold/green block ──────────────────────── */
+.gold-block {
+  border-radius: var(--radius);
+  border: 3px solid var(--gold);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Interstitial (round-start) screen ────────────────
+   Centerpiece animation is hand-rolled CSS + JS (plain
+   keyframe animations that autoplay on mount), no
+   framer-motion, per design brief. */
+.interstitial-wrap {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.interstitial-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(320px, 42vw, 620px);
+  height: clamp(320px, 42vw, 620px);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(246, 223, 160, 0.9) 0%,
+    rgba(216, 174, 76, 0.5) 35%,
+    rgba(216, 174, 76, 0) 70%
+  );
+  transform: translate(-50%, -56%) scale(0.2);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  animation: flash-burst 1.1s ease-out forwards;
+}
+
+@keyframes flash-burst {
+  0% {
+    opacity: 0.9;
+    transform: translate(-50%, -56%) scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -56%) scale(2.4);
+  }
+}
+
+.interstitial-qmark-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-weight: 900;
+  font-size: clamp(360px, 52vw, 680px);
+  line-height: 1;
+  font-family: Georgia, "Times New Roman", serif;
+  color: transparent;
+  -webkit-text-stroke-width: clamp(3px, 0.45vw, 7px);
+  -webkit-text-stroke-color: var(--gold-light);
+  paint-order: stroke;
+  opacity: 0;
+  z-index: 0;
+  user-select: none;
+  pointer-events: none;
+  animation:
+    qmark-intro 0.8s cubic-bezier(0.2, 0.8, 0.3, 1) forwards,
+    glow-pulse 3.4s ease-in-out 0.8s infinite;
+}
+
+@keyframes qmark-intro {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -56%) scale(0.35) rotate(-18deg);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(-50%, -56%) scale(1.08) rotate(4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -56%) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 25px rgba(216, 174, 76, 0.45)) drop-shadow(0 0 8px rgba(246, 223, 160, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 65px rgba(216, 174, 76, 0.85)) drop-shadow(0 0 26px rgba(246, 223, 160, 0.6));
+  }
+}
+
+.interstitial-wordmark {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  font-size: clamp(64px, 9vw, 150px);
+  font-weight: 900;
+  color: var(--white);
+  letter-spacing: -2px;
+}
+
+.interstitial-wordmark .letter {
+  display: inline-block;
+  text-shadow:
+    0 2px 0 var(--gold-dark),
+    0 5px 0 rgba(0, 0, 0, 0.25),
+    0 12px 24px rgba(0, 0, 0, 0.55),
+    0 0 40px rgba(255, 255, 255, 0.12);
+  opacity: 0;
+  transform: translateY(36px) scale(0.8);
+  animation: letter-in 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+  animation-delay: var(--letter-delay, 0s);
+}
+
+.interstitial-wordmark .letter-space {
+  width: 0.28em;
+}
+
+@keyframes letter-in {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.round-label-pill {
+  position: relative;
+  z-index: 1;
+  margin-top: 40px;
+  padding: 18px 56px;
+  font-size: clamp(24px, 3.2vw, 44px);
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--white);
+  background: var(--green-panel);
+}
+
+/* ── Board (main round) screen ────────────────────── */
+.board-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.cross-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* centering translate(-50%,-50%) is applied by framer-motion (x/y props)
+     rather than here, since it also animates scale/rotate on this element
+     and an inline transform from motion would otherwise overwrite this rule */
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: clamp(32px, 6vw, 80px);
+}
+
+.cross-flash-img {
+  width: clamp(280px, 36vw, 600px);
+  height: auto;
+  filter: drop-shadow(0 0 40px rgba(255, 59, 59, 0.7)) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+}
+
+.board-top {
+  position: absolute;
+  top: clamp(16px, 3vh, 36px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(16px, 2.5vh, 26px);
+}
+
+.board-total-badge {
+  min-width: clamp(160px, 16vw, 260px);
+  text-align: center;
+  padding: clamp(14px, 2vh, 24px) clamp(28px, 4vw, 56px);
+  font-size: clamp(56px, 7vw, 100px);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--white);
+  background: var(--green-panel);
+  font-variant-numeric: tabular-nums;
+}
+
+.board-question {
+  max-width: min(760px, 60vw);
+  text-align: center;
+  padding: 16px 32px;
+  font-size: clamp(18px, 2.2vw, 30px);
+  font-weight: 700;
+  color: var(--white);
+  background: rgba(4, 18, 9, 0.55);
+  border: 2px solid var(--gold);
+}
+
+.board-team-col {
+  position: absolute;
+  top: 55%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.board-team-col.left {
+  left: clamp(16px, 3.5vw, 70px);
+}
+
+.board-team-col.right {
+  right: clamp(16px, 3.5vw, 70px);
+}
+
+.team-score-badge {
+  width: clamp(130px, 15vw, 210px);
+  height: clamp(130px, 15vw, 210px);
+  border-radius: 50%;
+  border: 6px solid var(--gold);
+  background: var(--green-panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-weight: 900;
+  font-size: clamp(44px, 6vw, 88px);
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.team-score-badge-selectable {
+  cursor: pointer;
+  border-color: var(--gold-light);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 6px rgba(246, 223, 160, 0.2);
+}
+
+.team-score-label {
+  font-size: clamp(13px, 1.4vw, 19px);
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  text-align: center;
+}
+
+.host-panel {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+.host-panel:hover {
+  opacity: 1;
+}
+
+.board-status {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--white);
+  background: rgba(4, 18, 9, 0.75);
+  border: 1px solid rgba(216, 174, 76, 0.5);
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.strike-marks {
+  display: flex;
+  gap: 4px;
+}
+
+.strike-mark {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.2);
+  font-weight: 900;
+  font-size: 10px;
+  background: rgba(4, 18, 9, 0.75);
+}
+
+.strike-mark-active {
+  border-color: #d64545;
+  color: #ff5a5a;
+  background: rgba(214, 69, 69, 0.25);
+}
+
+.board-grid {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -46%);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(12px, 2vh, 22px) clamp(16px, 3vw, 32px);
+  width: min(1180px, 66vw);
+  z-index: 1;
+}
+
+.board-slot {
+  position: relative;
+  height: clamp(64px, 9.5vh, 108px);
+  border-radius: 14px;
+  border: 3px solid var(--gold);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  padding: 0;
+}
+
+.board-slot-hidden {
+  justify-content: center;
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 55%, var(--gold-dark) 100%);
+}
+
+.board-slot-revealed {
+  justify-content: flex-start;
+  background: radial-gradient(140% 160% at 28% 15%, #1c4d2a 0%, #123c1f 55%, #0b2a15 100%);
+  padding: 0 0 0 clamp(20px, 2.6vw, 32px);
+  cursor: default;
+}
+
+.board-slot-index {
+  flex-shrink: 0;
+  width: clamp(44px, 5.2vw, 64px);
+  height: clamp(44px, 5.2vw, 64px);
+  border-radius: 50%;
+  border: 3px solid var(--gold);
+  background: var(--green-panel-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-weight: 900;
+  font-size: clamp(24px, 3vw, 40px);
+  font-variant-numeric: tabular-nums;
+}
+
+.board-slot-text {
+  flex: 1;
+  text-align: left;
+  color: var(--white);
+  font-weight: 900;
+  font-size: clamp(17px, 2.2vw, 29px);
+  line-height: 1.15;
+  padding-right: clamp(10px, 1.4vw, 20px);
+}
+
+.board-slot-points {
+  flex-shrink: 0;
+  align-self: stretch;
+  min-width: clamp(64px, 6.5vw, 100px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #34873f 0%, #1f5c2c 100%);
+  color: var(--white);
+  font-weight: 900;
+  font-size: clamp(26px, 3.2vw, 42px);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Round end / game end screen ──────────────────── */
+.round-end-center {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.round-end-title {
+  font-size: clamp(36px, 5.5vw, 72px);
+  font-weight: 900;
+  color: var(--white);
+  letter-spacing: -1px;
+  background: var(--green-panel);
+  padding: 20px 64px;
+}
+
+.score-cards {
+  display: flex;
+  gap: 32px;
+}
+
+.score-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 28px 0 48px;
+  border-radius: var(--radius);
+  border: 3px solid var(--gold);
+  width: 420px;
+  min-height: 320px;
+  background: var(--green-panel);
+  cursor: default;
+}
+
+.score-card-label {
+  font-size: clamp(24px, 3.2vw, 36px);
+  font-weight: 700;
+  color: var(--gold-light);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.score-card-value {
+  margin-top: 2rem;
+  font-size: clamp(80px, 14vw, 160px);
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.winner-banner {
+  font-size: clamp(24px, 4vw, 44px);
+  font-weight: 700;
+  padding: 16px 48px;
+  border-radius: 50px;
+  color: var(--white);
+  border: 3px solid var(--gold);
+  background: var(--green-panel);
+}
+
+.winner-tie {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Global keyboard hint (bottom) ────────────────── */
+.keyboard-hint {
+  position: absolute;
+  bottom: 24px;
+  z-index: 2;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.5px;
+}

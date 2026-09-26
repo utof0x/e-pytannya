@@ -27,6 +27,23 @@ function otherTeam(team: Team): Team {
   return team === 'team1' ? 'team2' : 'team1'
 }
 
+// animated wrapper so each badge pops when its own number changes
+function TotalBadge({ value }: { value: number }) {
+  return (
+    <AnimatePresence mode="popLayout">
+      <motion.div
+        key={value}
+        className="board-total-badge gold-block"
+        initial={{ scale: 1.3, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', bounce: 0.5, duration: 0.35 }}
+      >
+        {value}
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
 export default function Board({
   round,
   revealed,
@@ -96,17 +113,14 @@ export default function Board({
       </AnimatePresence>
 
       <div className="board-top">
-        <AnimatePresence mode="popLayout">
-          <motion.div
-            key={boardTotal}
-            className="board-total-badge gold-block"
-            initial={{ scale: 1.3, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', bounce: 0.5, duration: 0.35 }}
-          >
-            {boardTotal}
-          </motion.div>
-        </AnimatePresence>
+        {isFinal ? (
+          <div className="board-total-pair">
+            <TotalBadge value={final.points.team1} />
+            <TotalBadge value={final.points.team2} />
+          </div>
+        ) : (
+          <TotalBadge value={boardTotal} />
+        )}
 
         {!awaitingFirstPick && <div className="board-question">{round.question}</div>}
       </div>
@@ -148,7 +162,6 @@ export default function Board({
           {scores.team1}
         </motion.div>
         <div className="team-score-label">Команда 1</div>
-        {isFinal && <div className="final-points">+{final.points.team1}</div>}
       </div>
 
       <div className="board-team-col right">
@@ -161,7 +174,6 @@ export default function Board({
           {scores.team2}
         </motion.div>
         <div className="team-score-label">Команда 2</div>
-        {isFinal && <div className="final-points">+{final.points.team2}</div>}
       </div>
 
       <div className="board-grid">
@@ -172,6 +184,8 @@ export default function Board({
               key={i}
               className={`board-slot ${isRevealed ? 'board-slot-revealed' : 'board-slot-hidden'}`}
               onClick={() => onReveal(i)}
+              // keep focus off the tile: no focus ring, and Enter/Space stay with the game's key handler
+              onMouseDown={(e) => e.preventDefault()}
               whileHover={!isRevealed ? { scale: 1.02 } : {}}
               whileTap={!isRevealed ? { scale: 0.98 } : {}}
             >

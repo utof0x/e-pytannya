@@ -303,6 +303,22 @@ body,
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 6px rgba(246, 223, 160, 0.2);
 }
 
+.team-score-badge-active {
+  border-color: var(--gold-light);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 8px rgba(246, 223, 160, 0.35), 0 0 40px rgba(246, 223, 160, 0.45);
+}
+
+.final-points {
+  padding: 4px 14px;
+  font-size: clamp(16px, 1.8vw, 24px);
+  font-weight: 800;
+  color: var(--white);
+  background: var(--green-panel-dark);
+  border: 2px solid var(--gold);
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+
 .team-score-label {
   font-size: clamp(13px, 1.4vw, 19px);
   font-weight: 700;
@@ -373,6 +389,9 @@ body,
   transform: translate(-50%, -46%);
   display: grid;
   grid-template-columns: 1fr 1fr;
+  /* fill top-to-bottom so the left column is 1–4 and the right is 5–8 */
+  grid-template-rows: repeat(4, auto);
+  grid-auto-flow: column;
   gap: clamp(12px, 2vh, 22px) clamp(16px, 3vw, 32px);
   width: min(1180px, 66vw);
   z-index: 1;

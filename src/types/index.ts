@@ -5,8 +5,10 @@ export type Team = "team1" | "team2";
 // face-off: both teams' face-off players get one guess each; higher points wins control
 // control: the winning team keeps revealing answers until 2 misses
 // steal: the other team gets one guess at the remaining board
+// final: captains alternate one guess at a time until every tile is open; the team
+//   that collected more points in the final takes the whole pot
 // resolved: round's points have been awarded, board fully revealed, waiting to advance
-export type BoardStage = "face-off" | "control" | "steal" | "resolved";
+export type BoardStage = "face-off" | "control" | "steal" | "final" | "resolved";
 
 export interface BoardAnswer {
   text: string;
@@ -29,6 +31,11 @@ export interface FaceOffState {
   team2Points: number;
 }
 
+export interface FinalState {
+  turn: Team | null; // whose captain guesses next; null until the host picks who starts
+  points: Record<Team, number>; // points each team has opened during the final
+}
+
 export interface GameState {
   phase: GamePhase;
   currentRoundIndex: number;
@@ -39,7 +46,8 @@ export interface GameState {
   controllingTeam: Team | null; // set once face-off resolves
   misses: number; // strikes against the controlling team, 0-2
   faceOff: FaceOffState;
-  lastWinner: Team | null; // who the pot was awarded to, shown on the resolved banner
+  final: FinalState;
+  lastWinner: Team | null; // who the pot was awarded to, shown on the resolved banner; null on a final tie
   missFlash: number; // increments on every wrong answer, used to trigger the on-screen cross flash
   missFlashCount: 1 | 2; // how many crosses that flash should show (2 only on the controlling team's 2nd strike)
 }

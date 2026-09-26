@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { BoardStage, FaceOffState, Round, Team } from '../types'
+import type { BoardStage, FaceOffState, FinalState, Round, Team } from '../types'
 import crossSrc from '../assets/cross.png'
 
 interface Props {
@@ -14,6 +14,8 @@ interface Props {
   missFlash: number
   missFlashCount: 1 | 2
   faceOff: FaceOffState
+  final: FinalState
+  isFinal: boolean
   lastWinner: Team | null
   onReveal: (i: number) => void
   onChooseFirstTeam: (team: Team) => void
@@ -36,11 +38,15 @@ export default function Board({
   missFlash,
   missFlashCount,
   faceOff,
+  final,
+  isFinal,
   lastWinner,
   onReveal,
   onChooseFirstTeam,
 }: Props) {
-  const awaitingFirstPick = boardStage === 'face-off' && !faceOff.turn
+  const awaitingFirstPick =
+    (boardStage === 'face-off' && !faceOff.turn) || (boardStage === 'final' && !final.turn)
+  const activeTeam = boardStage === 'final' ? final.turn : boardStage === 'face-off' ? faceOff.turn : null
 
   const [showCrossFlash, setShowCrossFlash] = useState(false)
   const prevMissFlash = useRef(missFlash)
@@ -61,8 +67,12 @@ export default function Board({
     statusText = `Грає: ${TEAM_LABEL[controllingTeam]}`
   } else if (boardStage === 'steal' && controllingTeam) {
     statusText = `${TEAM_LABEL[otherTeam(controllingTeam)]} краде!`
+  } else if (boardStage === 'final' && final.turn) {
+    statusText = `Фінал · Хід: ${TEAM_LABEL[final.turn]}`
   } else if (boardStage === 'resolved' && lastWinner) {
     statusText = `${TEAM_LABEL[lastWinner]} забирає ${boardTotal} балів!`
+  } else if (boardStage === 'resolved' && isFinal) {
+    statusText = `Нічия! Кожна команда отримує ${Math.floor(boardTotal / 2)} балів`
   }
 
   const showStrikes = boardStage === 'control' || boardStage === 'steal' || boardStage === 'resolved'
@@ -130,7 +140,7 @@ export default function Board({
 
       <div className="board-team-col left">
         <motion.div
-          className={`team-score-badge ${awaitingFirstPick ? 'team-score-badge-selectable' : ''}`}
+          className={`team-score-badge ${awaitingFirstPick ? 'team-score-badge-selectable' : ''} ${activeTeam === 'team1' ? 'team-score-badge-active' : ''}`}
           onClick={() => awaitingFirstPick && onChooseFirstTeam('team1')}
           animate={awaitingFirstPick ? { scale: [1, 1.05, 1] } : { scale: 1 }}
           transition={awaitingFirstPick ? { duration: 1.4, repeat: Infinity, ease: 'easeInOut' } : {}}
@@ -138,11 +148,12 @@ export default function Board({
           {scores.team1}
         </motion.div>
         <div className="team-score-label">Команда 1</div>
+        {isFinal && <div className="final-points">+{final.points.team1}</div>}
       </div>
 
       <div className="board-team-col right">
         <motion.div
-          className={`team-score-badge ${awaitingFirstPick ? 'team-score-badge-selectable' : ''}`}
+          className={`team-score-badge ${awaitingFirstPick ? 'team-score-badge-selectable' : ''} ${activeTeam === 'team2' ? 'team-score-badge-active' : ''}`}
           onClick={() => awaitingFirstPick && onChooseFirstTeam('team2')}
           animate={awaitingFirstPick ? { scale: [1, 1.05, 1] } : { scale: 1 }}
           transition={awaitingFirstPick ? { duration: 1.4, repeat: Infinity, ease: 'easeInOut' } : {}}
@@ -150,6 +161,7 @@ export default function Board({
           {scores.team2}
         </motion.div>
         <div className="team-score-label">Команда 2</div>
+        {isFinal && <div className="final-points">+{final.points.team2}</div>}
       </div>
 
       <div className="board-grid">

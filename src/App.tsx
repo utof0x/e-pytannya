@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import type { GameState, Team, FaceOffState } from './types'
+import type { GameState, Team, FaceOffState, FinalState } from './types'
 import { ROUNDS, TOTAL_ROUNDS } from './data/rounds'
 import AnimatedBackground from './components/AnimatedBackground'
 import Interstitial from './components/Interstitial'
@@ -19,19 +19,24 @@ function freshFaceOff(): FaceOffState {
   return { firstTeam: null, turn: null, team1Done: false, team2Done: false, team1Points: 0, team2Points: 0 }
 }
 
+function freshFinal(): FinalState {
+  return { turn: null, points: { team1: 0, team2: 0 } }
+}
+
 type RoundFields = Pick<
   GameState,
-  'boardTotal' | 'revealed' | 'boardStage' | 'controllingTeam' | 'misses' | 'faceOff' | 'lastWinner'
+  'boardTotal' | 'revealed' | 'boardStage' | 'controllingTeam' | 'misses' | 'faceOff' | 'final' | 'lastWinner'
 >
 
-function freshRoundFields(): RoundFields {
+function freshRoundFields(roundIndex: number): RoundFields {
   return {
     boardTotal: 0,
     revealed: Array(8).fill(false),
-    boardStage: 'face-off',
+    boardStage: ROUNDS[roundIndex].isFinal ? 'final' : 'face-off',
     controllingTeam: null,
     misses: 0,
     faceOff: freshFaceOff(),
+    final: freshFinal(),
     lastWinner: null,
   }
 }
@@ -43,7 +48,7 @@ function initialState(): GameState {
     scores: { team1: 0, team2: 0 },
     missFlash: 0,
     missFlashCount: 1,
-    ...freshRoundFields(),
+    ...freshRoundFields(0),
   }
 }
 
@@ -52,6 +57,27 @@ function faceOffWinner(fo: FaceOffState): Team {
   if (fo.team1Points > fo.team2Points) return 'team1'
   if (fo.team2Points > fo.team1Points) return 'team2'
   return fo.firstTeam! // both teams have gone by the time this is called, so a pick was already made
+}
+
+// the final's winner takes the whole pot; a tie splits it evenly
+function resolveFinal(scores: Record<Team, number>, final: FinalState, pot: number): Partial<GameState> {
+  const { team1, team2 } = final.points
+  if (team1 === team2) {
+    const half = Math.floor(pot / 2)
+    return {
+      final,
+      boardStage: 'resolved',
+      lastWinner: null,
+      scores: { team1: scores.team1 + half, team2: scores.team2 + half },
+    }
+  }
+  const winner: Team = team1 > team2 ? 'team1' : 'team2'
+  return {
+    final,
+    boardStage: 'resolved',
+    lastWinner: winner,
+    scores: { ...scores, [winner]: scores[winner] + pot },
+  }
 }
 
 export default function App() {
@@ -71,7 +97,7 @@ export default function App() {
           ...prev,
           phase: 'round-start',
           currentRoundIndex: currentRoundIndex + 1,
-          ...freshRoundFields(),
+          ...freshRoundFields(currentRoundIndex + 1),
         }
       }
 
@@ -87,10 +113,15 @@ export default function App() {
 
       if (phase === 'round-start') {
         if (currentRoundIndex === 0) return prev
-        return { ...prev, phase: 'board', currentRoundIndex: currentRoundIndex - 1, ...freshRoundFields() }
+        return {
+          ...prev,
+          phase: 'board',
+          currentRoundIndex: currentRoundIndex - 1,
+          ...freshRoundFields(currentRoundIndex - 1),
+        }
       }
-      if (phase === 'board') return { ...prev, phase: 'round-start', ...freshRoundFields() }
-      if (phase === 'game-end') return { ...prev, phase: 'board', ...freshRoundFields() }
+      if (phase === 'board') return { ...prev, phase: 'round-start', ...freshRoundFields(currentRoundIndex) }
+      if (phase === 'game-end') return { ...prev, phase: 'board', ...freshRoundFields(currentRoundIndex) }
 
       return prev
     })
@@ -98,7 +129,12 @@ export default function App() {
 
   const chooseFirstTeam = useCallback((team: Team) => {
     setState((prev) => {
-      if (prev.phase !== 'board' || prev.boardStage !== 'face-off' || prev.faceOff.turn) return prev
+      if (prev.phase !== 'board') return prev
+      if (prev.boardStage === 'final') {
+        if (prev.final.turn) return prev
+        return { ...prev, final: { ...prev.final, turn: team } }
+      }
+      if (prev.boardStage !== 'face-off' || prev.faceOff.turn) return prev
       return { ...prev, faceOff: { ...prev.faceOff, firstTeam: team, turn: team } }
     })
   }, [])
@@ -149,6 +185,17 @@ export default function App() {
           }
         }
         return { ...prev, revealed, boardTotal }
+      }
+
+      if (prev.boardStage === 'final') {
+        const turn = prev.final.turn
+        if (!turn) return prev
+        const final: FinalState = {
+          turn: otherTeam(turn),
+          points: { ...prev.final.points, [turn]: prev.final.points[turn] + points },
+        }
+        if (!revealed.every(Boolean)) return { ...prev, revealed, boardTotal, final }
+        return { ...prev, revealed, boardTotal, ...resolveFinal(prev.scores, { ...final, turn: null }, boardTotal) }
       }
 
       if (prev.boardStage === 'steal') {
@@ -202,6 +249,12 @@ export default function App() {
         const misses = prev.misses + 1
         if (misses >= 2) return { ...prev, missFlash, missFlashCount: 2, misses, boardStage: 'steal' }
         return { ...prev, missFlash, missFlashCount: 1, misses }
+      }
+
+      if (prev.boardStage === 'final') {
+        const turn = prev.final.turn
+        if (!turn) return prev
+        return { ...prev, missFlash, missFlashCount: 1, final: { ...prev.final, turn: otherTeam(turn) } }
       }
 
       if (prev.boardStage === 'steal') {
@@ -311,6 +364,8 @@ export default function App() {
           missFlash={state.missFlash}
           missFlashCount={state.missFlashCount}
           faceOff={state.faceOff}
+          final={state.final}
+          isFinal={round.isFinal}
           lastWinner={state.lastWinner}
           onReveal={handleReveal}
           onChooseFirstTeam={chooseFirstTeam}

@@ -85,6 +85,7 @@ function resolveFinal(scores: Record<Team, number>, final: FinalState, pot: numb
 
 export default function App() {
   const [state, setState] = useState<GameState>(() => initialState())
+  const [showHints, setShowHints] = useState(true)
 
   const advance = useCallback(() => {
     setState((prev) => {
@@ -285,6 +286,10 @@ export default function App() {
     function onKey(e: KeyboardEvent) {
       // the setup form handles its own keys (typing, Enter to submit)
       if (state.phase === 'setup') return
+      if (e.code === 'KeyH') {
+        setShowHints((v) => !v)
+        return
+      }
       if (state.phase === 'board' && e.key >= '1' && e.key <= '8') {
         revealAnswer(Number(e.key) - 1)
         return
@@ -359,7 +364,7 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <div className={`app${showHints ? '' : ' hints-hidden'}`}>
       <AnimatedBackground mode={state.phase === 'board' ? 'active' : 'idle'} />
       {state.phase === 'setup' && <SetupScreen teamNames={state.teamNames} onStart={startGame} />}
       {state.phase === 'round-start' && <Interstitial round={round} />}

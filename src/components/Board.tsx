@@ -216,7 +216,7 @@ export default function Board({
         })}
       </div>
 
-      <div className="keyboard-hint">1–8 відкрити відповідь · Backspace невірна відповідь · Space далі</div>
+      <div className="keyboard-hint">1–8 відкрити відповідь · Backspace невірна відповідь · Space далі · H сховати</div>
     </div>
   )
 }

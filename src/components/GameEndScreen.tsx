@@ -85,7 +85,7 @@ export default function GameEndScreen({ scores, teamNames }: Props) {
           </motion.div>
         )}
       </div>
-      <div className="keyboard-hint">Space нова гра</div>
+      <div className="keyboard-hint">Space нова гра · H сховати</div>
     </div>
   )
 }

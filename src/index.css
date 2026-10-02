@@ -322,7 +322,8 @@ body,
   min-width: clamp(160px, 16vw, 260px);
   text-align: center;
   padding: clamp(14px, 2vh, 24px) clamp(28px, 4vw, 56px);
-  font-size: clamp(56px, 7vw, 100px);
+  /* capped by height too, so on short screens the top block stays above the answer grid */
+  font-size: clamp(40px, min(7vw, 9vh), 100px);
   font-weight: 900;
   line-height: 1;
   color: var(--white);
@@ -336,10 +337,10 @@ body,
 }
 
 .board-question {
-  max-width: min(760px, 60vw);
+  max-width: min(1100px, 78vw);
   text-align: center;
-  padding: 16px 32px;
-  font-size: clamp(18px, 2.2vw, 30px);
+  padding: clamp(8px, 1.6vh, 16px) 32px;
+  font-size: clamp(16px, min(2.2vw, 3.2vh), 30px);
   font-weight: 700;
   color: var(--white);
   background: rgba(4, 18, 9, 0.55);
@@ -513,6 +514,8 @@ body,
 
 .board-slot-text {
   flex: 1;
+  /* lets the span be narrower than its longest word, so SlotText can detect the overflow */
+  min-width: 0;
   text-align: left;
   color: var(--white);
   font-weight: 900;
@@ -593,6 +596,11 @@ body,
 /* the final's winner stands alone on the end screen with the whole bank */
 .score-card-winner {
   width: 560px;
+}
+
+/* the caption below takes the room the value's top margin used to */
+.score-card-winner .score-card-value {
+  margin-top: 0;
 }
 
 .score-card-caption {

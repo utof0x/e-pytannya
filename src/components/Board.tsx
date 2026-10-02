@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { BoardStage, FaceOffState, FinalState, Round, Team } from '../types'
 import crossSrc from '../assets/cross.png'
@@ -40,6 +40,42 @@ function TotalBadge({ value }: { value: number }) {
         {value}
       </motion.div>
     </AnimatePresence>
+  )
+}
+
+// answer text that shrinks its own font until it fits the tile, so long
+// answers stay inside on small screens; refits whenever the tile is resized
+function SlotText({ text }: { text: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    const slot = el?.parentElement
+    if (!el || !slot) return
+    const fit = () => {
+      el.style.fontSize = ''
+      let size = parseFloat(getComputedStyle(el).fontSize)
+      // 8px keeps the text off the tile's top and bottom border
+      while (size > 9 && (el.offsetHeight > slot.clientHeight - 8 || el.scrollWidth > el.clientWidth)) {
+        size -= 1
+        el.style.fontSize = `${size}px`
+      }
+    }
+    fit()
+    const observer = new ResizeObserver(fit)
+    observer.observe(slot)
+    return () => observer.disconnect()
+  }, [text])
+
+  return (
+    <motion.span
+      ref={ref}
+      className="board-slot-text"
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      {text}
+    </motion.span>
   )
 }
 
@@ -193,14 +229,7 @@ export default function Board({
               whileTap={!isRevealed ? { scale: 0.98 } : {}}
             >
               {isRevealed ? (
-                <motion.span
-                  className="board-slot-text"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {answer.text}
-                </motion.span>
+                <SlotText text={answer.text} />
               ) : (
                 <span className="board-slot-index">{i + 1}</span>
               )}

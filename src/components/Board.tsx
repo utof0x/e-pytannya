@@ -87,9 +87,12 @@ export default function Board({
   } else if (boardStage === 'final' && final.turn) {
     statusText = `Фінал · Хід: ${teamNames[final.turn]}`
   } else if (boardStage === 'resolved' && lastWinner) {
-    statusText = `${teamNames[lastWinner]} забирає ${boardTotal} балів!`
+    // the final's winner takes the whole bank, which is already their score by now
+    statusText = isFinal
+      ? `${teamNames[lastWinner]} забирає всі ${scores[lastWinner]} балів!`
+      : `${teamNames[lastWinner]} забирає ${boardTotal} балів!`
   } else if (boardStage === 'resolved' && isFinal) {
-    statusText = `Нічия! Кожна команда отримує ${Math.floor(boardTotal / 2)} балів`
+    statusText = `Нічия! Кожна команда отримує ${scores.team1} балів`
   }
 
   const showStrikes = boardStage === 'control' || boardStage === 'steal' || boardStage === 'resolved'

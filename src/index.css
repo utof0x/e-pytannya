@@ -590,6 +590,17 @@ body,
   font-variant-numeric: tabular-nums;
 }
 
+/* the final's winner stands alone on the end screen with the whole bank */
+.score-card-winner {
+  width: 560px;
+}
+
+.score-card-caption {
+  font-size: clamp(18px, 2.2vw, 26px);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
+
 .winner-banner {
   font-size: clamp(24px, 4vw, 44px);
   font-weight: 700;

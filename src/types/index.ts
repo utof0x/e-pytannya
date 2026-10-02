@@ -8,7 +8,8 @@ export const DEFAULT_TEAM_NAMES: Record<Team, string> = { team1: "Команда
 // control: the winning team keeps revealing answers until 2 misses
 // steal: the other team gets one guess at the remaining board
 // final: captains alternate one guess at a time until every tile is open; the team
-//   that collected more points in the final takes the whole pot
+//   that collected more points in the final takes the whole bank (both teams'
+//   scores from the earlier rounds plus the final's pot)
 // resolved: round's points have been awarded, board fully revealed, waiting to advance
 export type BoardStage = "face-off" | "control" | "steal" | "final" | "resolved";
 
@@ -43,6 +44,7 @@ export interface GameState {
   currentRoundIndex: number;
   teamNames: Record<Team, string>; // entered on the setup screen, defaults when left blank
   scores: Record<Team, number>; // cumulative game score, shown in side badges
+  roundStartScores: Record<Team, number>[]; // scores at the start of each round reached so far, restored when the host goes back
   boardTotal: number; // pot accumulated this round, shown top-center
   revealed: boolean[]; // length 8, per-slot reveal flags for the current round
   boardStage: BoardStage;

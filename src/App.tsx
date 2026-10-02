@@ -49,6 +49,7 @@ function initialState(teamNames: Record<Team, string> = DEFAULT_TEAM_NAMES): Gam
     currentRoundIndex: 0,
     teamNames,
     scores: { team1: 0, team2: 0 },
+    roundStartScores: [{ team1: 0, team2: 0 }],
     missFlash: 0,
     missFlashCount: 1,
     ...freshRoundFields(0),
@@ -62,24 +63,21 @@ function faceOffWinner(fo: FaceOffState): Team {
   return fo.firstTeam! // both teams have gone by the time this is called, so a pick was already made
 }
 
-// the final's winner takes the whole pot; a tie splits it evenly
+// the final's winner takes the whole bank: everything both teams earned in the
+// earlier rounds plus the final's pot; a tie splits the bank evenly
 function resolveFinal(scores: Record<Team, number>, final: FinalState, pot: number): Partial<GameState> {
+  const bank = scores.team1 + scores.team2 + pot
   const { team1, team2 } = final.points
   if (team1 === team2) {
-    const half = Math.floor(pot / 2)
-    return {
-      final,
-      boardStage: 'resolved',
-      lastWinner: null,
-      scores: { team1: scores.team1 + half, team2: scores.team2 + half },
-    }
+    const half = Math.floor(bank / 2)
+    return { final, boardStage: 'resolved', lastWinner: null, scores: { team1: half, team2: half } }
   }
   const winner: Team = team1 > team2 ? 'team1' : 'team2'
   return {
     final,
     boardStage: 'resolved',
     lastWinner: winner,
-    scores: { ...scores, [winner]: scores[winner] + pot },
+    scores: winner === 'team1' ? { team1: bank, team2: 0 } : { team1: 0, team2: bank },
   }
 }
 
@@ -101,6 +99,7 @@ export default function App() {
           ...prev,
           phase: 'round-start',
           currentRoundIndex: currentRoundIndex + 1,
+          roundStartScores: [...prev.roundStartScores.slice(0, currentRoundIndex + 1), prev.scores],
           ...freshRoundFields(currentRoundIndex + 1),
         }
       }
@@ -112,9 +111,11 @@ export default function App() {
     })
   }, [])
 
+  // going back replays a round from scratch, so the scores roll back to what
+  // they were when that round started
   const goBack = useCallback(() => {
     setState((prev) => {
-      const { phase, currentRoundIndex } = prev
+      const { phase, currentRoundIndex, roundStartScores } = prev
 
       if (phase === 'round-start') {
         if (currentRoundIndex === 0) return { ...prev, phase: 'setup' }
@@ -122,11 +123,13 @@ export default function App() {
           ...prev,
           phase: 'board',
           currentRoundIndex: currentRoundIndex - 1,
+          scores: roundStartScores[currentRoundIndex - 1],
           ...freshRoundFields(currentRoundIndex - 1),
         }
       }
-      if (phase === 'board') return { ...prev, phase: 'round-start', ...freshRoundFields(currentRoundIndex) }
-      if (phase === 'game-end') return { ...prev, phase: 'board', ...freshRoundFields(currentRoundIndex) }
+      const scores = roundStartScores[currentRoundIndex]
+      if (phase === 'board') return { ...prev, phase: 'round-start', scores, ...freshRoundFields(currentRoundIndex) }
+      if (phase === 'game-end') return { ...prev, phase: 'board', scores, ...freshRoundFields(currentRoundIndex) }
 
       return prev
     })

@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import type { Team } from '../types'
 
 interface Props {
@@ -17,8 +17,11 @@ const cardVariants = {
 }
 
 export default function GameEndScreen({ scores, teamNames }: Props) {
-  const team1Leads = scores.team1 > scores.team2
+  // the final's winner holds the whole bank and the loser is left with 0, so
+  // only the winner gets a card; a tied final splits the bank and shows both
   const tied = scores.team1 === scores.team2
+  const winner: Team = scores.team1 > scores.team2 ? 'team1' : 'team2'
+  const shown: Team[] = tied ? ['team1', 'team2'] : [winner]
 
   return (
     <div className="screen">
@@ -33,35 +36,20 @@ export default function GameEndScreen({ scores, teamNames }: Props) {
         </motion.h1>
 
         <div className="score-cards">
-          <motion.div className="score-card" variants={cardVariants} custom={0.1} initial="hidden" animate="visible">
-            <div className="score-card-label">{teamNames.team1}</div>
-            <AnimatePresence mode="popLayout">
-              <motion.div
-                key={scores.team1}
-                className="score-card-value"
-                initial={{ scale: 1.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', bounce: 0.5, duration: 0.35 }}
-              >
-                {scores.team1}
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
-
-          <motion.div className="score-card" variants={cardVariants} custom={0.3} initial="hidden" animate="visible">
-            <div className="score-card-label">{teamNames.team2}</div>
-            <AnimatePresence mode="popLayout">
-              <motion.div
-                key={scores.team2}
-                className="score-card-value"
-                initial={{ scale: 1.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', bounce: 0.5, duration: 0.35 }}
-              >
-                {scores.team2}
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
+          {shown.map((team, i) => (
+            <motion.div
+              key={team}
+              className={`score-card ${tied ? '' : 'score-card-winner'}`}
+              variants={cardVariants}
+              custom={0.1 + i * 0.2}
+              initial="hidden"
+              animate="visible"
+            >
+              <div className="score-card-label">{teamNames[team]}</div>
+              <div className="score-card-value">{scores[team]}</div>
+              {!tied && <div className="score-card-caption">забирає всі бали гри</div>}
+            </motion.div>
+          ))}
         </div>
 
         {!tied && (
@@ -71,7 +59,7 @@ export default function GameEndScreen({ scores, teamNames }: Props) {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.8, type: 'spring', bounce: 0.5 }}
           >
-            🏆 Перемога: {team1Leads ? teamNames.team1 : teamNames.team2}!
+            🏆 Перемога: {teamNames[winner]}!
           </motion.div>
         )}
         {tied && (
@@ -81,7 +69,7 @@ export default function GameEndScreen({ scores, teamNames }: Props) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            Нічия!
+            Нічия! Бали поділено порівну
           </motion.div>
         )}
       </div>

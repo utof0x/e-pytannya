@@ -1,10 +1,12 @@
 import { useState, useCallback, useEffect } from 'react'
 import type { GameState, Team, FaceOffState, FinalState } from './types'
+import { DEFAULT_TEAM_NAMES } from './types'
 import { ROUNDS, TOTAL_ROUNDS } from './data/rounds'
 import AnimatedBackground from './components/AnimatedBackground'
 import Interstitial from './components/Interstitial'
 import Board from './components/Board'
 import GameEndScreen from './components/GameEndScreen'
+import SetupScreen from './components/SetupScreen'
 import dingSrc from './assets/ding.mp3'
 import wrongSrc from './assets/wrong.mp3'
 import introSrc from './assets/intro.mp3'
@@ -41,10 +43,11 @@ function freshRoundFields(roundIndex: number): RoundFields {
   }
 }
 
-function initialState(): GameState {
+function initialState(teamNames: Record<Team, string> = DEFAULT_TEAM_NAMES): GameState {
   return {
-    phase: 'round-start',
+    phase: 'setup',
     currentRoundIndex: 0,
+    teamNames,
     scores: { team1: 0, team2: 0 },
     missFlash: 0,
     missFlashCount: 1,
@@ -81,7 +84,7 @@ function resolveFinal(scores: Record<Team, number>, final: FinalState, pot: numb
 }
 
 export default function App() {
-  const [state, setState] = useState<GameState>(initialState)
+  const [state, setState] = useState<GameState>(() => initialState())
 
   const advance = useCallback(() => {
     setState((prev) => {
@@ -101,7 +104,8 @@ export default function App() {
         }
       }
 
-      if (phase === 'game-end') return initialState()
+      // new game goes back to setup with the current names prefilled
+      if (phase === 'game-end') return initialState(prev.teamNames)
 
       return prev
     })
@@ -112,7 +116,7 @@ export default function App() {
       const { phase, currentRoundIndex } = prev
 
       if (phase === 'round-start') {
-        if (currentRoundIndex === 0) return prev
+        if (currentRoundIndex === 0) return { ...prev, phase: 'setup' }
         return {
           ...prev,
           phase: 'board',
@@ -125,6 +129,10 @@ export default function App() {
 
       return prev
     })
+  }, [])
+
+  const startGame = useCallback((teamNames: Record<Team, string>) => {
+    setState((prev) => (prev.phase === 'setup' ? { ...prev, phase: 'round-start', teamNames } : prev))
   }, [])
 
   const chooseFirstTeam = useCallback((team: Team) => {
@@ -275,6 +283,8 @@ export default function App() {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      // the setup form handles its own keys (typing, Enter to submit)
+      if (state.phase === 'setup') return
       if (state.phase === 'board' && e.key >= '1' && e.key <= '8') {
         revealAnswer(Number(e.key) - 1)
         return
@@ -351,6 +361,7 @@ export default function App() {
   return (
     <div className="app">
       <AnimatedBackground mode={state.phase === 'board' ? 'active' : 'idle'} />
+      {state.phase === 'setup' && <SetupScreen teamNames={state.teamNames} onStart={startGame} />}
       {state.phase === 'round-start' && <Interstitial round={round} />}
       {state.phase === 'board' && (
         <Board
@@ -358,6 +369,7 @@ export default function App() {
           revealed={state.revealed}
           boardTotal={state.boardTotal}
           scores={state.scores}
+          teamNames={state.teamNames}
           boardStage={state.boardStage}
           controllingTeam={state.controllingTeam}
           misses={state.misses}
@@ -371,7 +383,7 @@ export default function App() {
           onChooseFirstTeam={chooseFirstTeam}
         />
       )}
-      {state.phase === 'game-end' && <GameEndScreen scores={state.scores} />}
+      {state.phase === 'game-end' && <GameEndScreen scores={state.scores} teamNames={state.teamNames} />}
     </div>
   )
 }

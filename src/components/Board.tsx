@@ -8,6 +8,7 @@ interface Props {
   revealed: boolean[]
   boardTotal: number
   scores: Record<Team, number>
+  teamNames: Record<Team, string>
   boardStage: BoardStage
   controllingTeam: Team | null
   misses: number
@@ -20,8 +21,6 @@ interface Props {
   onReveal: (i: number) => void
   onChooseFirstTeam: (team: Team) => void
 }
-
-const TEAM_LABEL: Record<Team, string> = { team1: 'Команда 1', team2: 'Команда 2' }
 
 function otherTeam(team: Team): Team {
   return team === 'team1' ? 'team2' : 'team1'
@@ -49,6 +48,7 @@ export default function Board({
   revealed,
   boardTotal,
   scores,
+  teamNames,
   boardStage,
   controllingTeam,
   misses,
@@ -79,15 +79,15 @@ export default function Board({
   if (awaitingFirstPick) {
     statusText = 'Оберіть, хто починає'
   } else if (boardStage === 'face-off' && faceOff.turn) {
-    statusText = `Хід: ${TEAM_LABEL[faceOff.turn]}`
+    statusText = `Хід: ${teamNames[faceOff.turn]}`
   } else if (boardStage === 'control' && controllingTeam) {
-    statusText = `Грає: ${TEAM_LABEL[controllingTeam]}`
+    statusText = `Грає: ${teamNames[controllingTeam]}`
   } else if (boardStage === 'steal' && controllingTeam) {
-    statusText = `${TEAM_LABEL[otherTeam(controllingTeam)]} краде!`
+    statusText = `${teamNames[otherTeam(controllingTeam)]} краде!`
   } else if (boardStage === 'final' && final.turn) {
-    statusText = `Фінал · Хід: ${TEAM_LABEL[final.turn]}`
+    statusText = `Фінал · Хід: ${teamNames[final.turn]}`
   } else if (boardStage === 'resolved' && lastWinner) {
-    statusText = `${TEAM_LABEL[lastWinner]} забирає ${boardTotal} балів!`
+    statusText = `${teamNames[lastWinner]} забирає ${boardTotal} балів!`
   } else if (boardStage === 'resolved' && isFinal) {
     statusText = `Нічия! Кожна команда отримує ${Math.floor(boardTotal / 2)} балів`
   }
@@ -161,7 +161,7 @@ export default function Board({
         >
           {scores.team1}
         </motion.div>
-        <div className="team-score-label">Команда 1</div>
+        <div className="team-score-label">{teamNames.team1}</div>
       </div>
 
       <div className="board-team-col right">
@@ -173,7 +173,7 @@ export default function Board({
         >
           {scores.team2}
         </motion.div>
-        <div className="team-score-label">Команда 2</div>
+        <div className="team-score-label">{teamNames.team2}</div>
       </div>
 
       <div className="board-grid">

@@ -3,6 +3,7 @@ import type { Team } from '../types'
 
 interface Props {
   scores: Record<Team, number>
+  teamNames: Record<Team, string>
 }
 
 const cardVariants = {
@@ -15,7 +16,7 @@ const cardVariants = {
   }),
 }
 
-export default function GameEndScreen({ scores }: Props) {
+export default function GameEndScreen({ scores, teamNames }: Props) {
   const team1Leads = scores.team1 > scores.team2
   const tied = scores.team1 === scores.team2
 
@@ -33,7 +34,7 @@ export default function GameEndScreen({ scores }: Props) {
 
         <div className="score-cards">
           <motion.div className="score-card" variants={cardVariants} custom={0.1} initial="hidden" animate="visible">
-            <div className="score-card-label">Команда 1</div>
+            <div className="score-card-label">{teamNames.team1}</div>
             <AnimatePresence mode="popLayout">
               <motion.div
                 key={scores.team1}
@@ -48,7 +49,7 @@ export default function GameEndScreen({ scores }: Props) {
           </motion.div>
 
           <motion.div className="score-card" variants={cardVariants} custom={0.3} initial="hidden" animate="visible">
-            <div className="score-card-label">Команда 2</div>
+            <div className="score-card-label">{teamNames.team2}</div>
             <AnimatePresence mode="popLayout">
               <motion.div
                 key={scores.team2}
@@ -70,7 +71,7 @@ export default function GameEndScreen({ scores }: Props) {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.8, type: 'spring', bounce: 0.5 }}
           >
-            🏆 {team1Leads ? 'Перемогла команда 1!' : 'Перемогла команда 2!'}
+            🏆 Перемога: {team1Leads ? teamNames.team1 : teamNames.team2}!
           </motion.div>
         )}
         {tied && (

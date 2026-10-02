@@ -1,6 +1,8 @@
-export type GamePhase = "round-start" | "board" | "game-end";
+export type GamePhase = "setup" | "round-start" | "board" | "game-end";
 
 export type Team = "team1" | "team2";
+
+export const DEFAULT_TEAM_NAMES: Record<Team, string> = { team1: "Команда 1", team2: "Команда 2" };
 
 // face-off: both teams' face-off players get one guess each; higher points wins control
 // control: the winning team keeps revealing answers until 2 misses
@@ -39,6 +41,7 @@ export interface FinalState {
 export interface GameState {
   phase: GamePhase;
   currentRoundIndex: number;
+  teamNames: Record<Team, string>; // entered on the setup screen, defaults when left blank
   scores: Record<Team, number>; // cumulative game score, shown in side badges
   boardTotal: number; // pot accumulated this round, shown top-center
   revealed: boolean[]; // length 8, per-slot reveal flags for the current round
